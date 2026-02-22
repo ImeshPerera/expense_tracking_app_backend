@@ -10,11 +10,12 @@ const {
   getExpensesSchema 
 } = require("../validators/expense-validator");
 
-const { addnewExpense, updateExpense, deleteExpense, getExpenses } = require('../controllers/process-controller');
+const { addnewExpense, updateExpense, deleteExpense, getExpenses, getallExpenses } = require('../controllers/process-controller');
 
-router.post("/", auth, validate(expenseSchema), addnewExpense);
-router.put("/", auth, validate(updateExpenseSchema), updateExpense);
+router.post("/", auth, upload.single('ref_image'), validate(expenseSchema), addnewExpense);
+router.put("/", auth, upload.single('ref_image'), validate(updateExpenseSchema), updateExpense);
 router.delete("/", auth, validate(deleteExpenseSchema), deleteExpense);
 router.get("/", auth, validate(getExpensesSchema), getExpenses);
+router.get("/all", auth, getallExpenses);
 
 module.exports = router;

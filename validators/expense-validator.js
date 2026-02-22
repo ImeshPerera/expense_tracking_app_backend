@@ -4,11 +4,13 @@ const expenseSchema = Joi.object({
   amount: Joi.number().positive().required(),
   category: Joi.string().min(3).required(),
   date: Joi.date().iso().required(),
-  description: Joi.string().allow('').max(255)
+  description: Joi.string().allow('').max(255),
+  ref_image: Joi.any().optional()
 });
 
 const updateExpenseSchema = expenseSchema.keys({
-  expenseId: Joi.number().required()
+  expenseId: Joi.number().required(),
+  ref_image: Joi.any().optional()
 });
 
 const deleteExpenseSchema = Joi.object({

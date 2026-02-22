@@ -23,7 +23,7 @@ const registerUser = async (req, res) => {
       }
     );
   } catch (err) {
-    console.error("Internal registration error:", err);
+    console.error("Internal registration error123:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
