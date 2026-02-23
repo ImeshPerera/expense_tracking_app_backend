@@ -1,0 +1,91 @@
+# Expense Tracking App - API Documentation
+
+## Base URL
+http://localhost:3000
+
+---
+
+## Authentication APIs
+
+### 1. Register User
+- **URL:** `/auth/register`
+- **Method:** `POST`
+- **Headers:** `Content-Type: application/json`
+- **Body Parameters:**
+  za
+- **Success Response:** `201 Created`
+
+### 2. Login User
+- **URL:** `/auth/login`
+- **Method:** `POST`
+- **Headers:** `Content-Type: application/json`
+- **Body Parameters:**
+  - `email` (string, email format, required)
+  - `password` (string, required)
+- **Success Response:** `200 OK` (returns JWT token)
+
+---
+
+## Expense Management APIs (Requires Authorization)
+*Note: All these requests require an `Authorization` header with a valid JWT token (Bearer token).*
+
+### 1. Add New Expense
+- **URL:** `/process/`
+- **Method:** `POST`
+- **Headers:**
+  - `Content-Type: multipart/form-data`
+  - `Authorization: Bearer <your_token>`
+- **Body Parameters:**
+  - `amount` (number, positive, required)
+  - `category` (string, required)
+  - `date` (date, ISO format, required)
+  - `description` (string, optional, max: 255)
+  - `ref_image` (file, image format, optional)
+- **Success Response:** `201 Created`
+
+### 2. Update Expense
+- **URL:** `/process/`
+- **Method:** `PUT`
+- **Headers:**
+  - `Content-Type: multipart/form-data`
+  - `Authorization: Bearer <your_token>`
+- **Body Parameters:**
+  - `expenseId` (number, required)
+  - `amount` (number, positive, required)
+  - `category` (string, required)
+  - `date` (date, ISO format, required)
+  - `description` (string, optional, max: 255)
+  - `ref_image` (file, image format, optional)
+- **Success Response:** `200 OK`
+
+### 3. Delete Expense
+- **URL:** `/process/`
+- **Method:** `DELETE`
+- **Headers:**
+  - `Content-Type: application/json`
+  - `Authorization: Bearer <your_token>`
+- **Body Parameters:**
+  - `expenseId` (number, required)
+- **Success Response:** `200 OK`
+
+### 4. Get Expenses (By Date Range)
+- **URL:** `/process/`
+- **Method:** `GET`
+- **Headers:**
+  - `Content-Type: application/json`
+  - `Authorization: Bearer <your_token>`
+- **Body Parameters:** (Note: This GET request expects a body)
+  - `startDate` (date, ISO format, required)
+  - `endDate` (date, ISO format, required, must be >= startDate)
+- **Success Response:** `200 OK` (returns list of expenses)
+
+### 5. Get Expenses All
+- **URL:** `/process/all`
+- **Method:** `GET`
+- **Headers:**
+  - `Content-Type: application/json`
+  - `Authorization: Bearer <your_token>`
+- **Body Parameters:**
+- **Success Response:** `200 OK` (returns list of expenses)
+
+Database - expense_tracking_app
