@@ -2,14 +2,14 @@ const getConnection = require("../db/database");
 const connection = getConnection();
 
 const addnewExpense = (req, res) => {
-    const { amount, category, date, description } = req.body;
+    const { amount, categoryId, date, description } = req.body;
     const userId = req.user.userId;
 
     const refImage = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
     connection.query(
-        "INSERT INTO expenses (user_id, amount, category, expense_date, description, ref_image) VALUES (?,?,?,?,?,?)",
-        [userId, amount, category, date, description, refImage],
+        "INSERT INTO expenses (user_id, category_id, amount, expense_date, description, ref_image) VALUES (?,?,?,?,?,?)",
+        [userId, categoryId, amount, date, description, refImage],
         (err, result) => {
             if (err) {
                 console.error("Error adding expense:", err);
@@ -25,11 +25,11 @@ const addnewExpense = (req, res) => {
 }
 
 const updateExpense = (req, res) => {
-    const { expenseId, amount, category, date, description } = req.body;
+    const { expenseId, amount, categoryId, date, description } = req.body;
     const userId = req.user.userId;
 
-    let query = "UPDATE expenses SET amount=?, category=?, expense_date=?, description=?";
-    let params = [amount, category, date, description];
+    let query = "UPDATE expenses SET amount=?, category_id=?, expense_date=?, description=?";
+    let params = [amount, categoryId, date, description];
 
     if (req.file) {
         query += ", ref_image=?";
@@ -80,12 +80,28 @@ const deleteExpense = (req, res) => {
 }
 
 const getExpenses = (req, res) => {
-    const { startDate, endDate } = req.body;
+    const { start, end, limit = 20, offset = 0, search = '' } = req.query;
     const userId = req.user.userId;
 
+    let query = "SELECT e.*, c.name as category_name, c.color_code, c.icon_name FROM expenses e JOIN categories c ON e.category_id = c.id WHERE e.user_id = ?";
+    let params = [userId];
+
+    if (start && end) {
+        query += " AND e.expense_date BETWEEN ? AND ?";
+        params.push(start, end);
+    }
+
+    if (search) {
+        query += " AND e.description LIKE ?";
+        params.push(`%${search}%`);
+    }
+
+    query += " ORDER BY e.expense_date DESC LIMIT ? OFFSET ?";
+    params.push(parseInt(limit), parseInt(offset));
+
     connection.query(
-        "SELECT * FROM expenses WHERE user_id=? AND expense_date BETWEEN ? AND ?",
-        [userId, startDate, endDate],
+        query,
+        params,
         (err, rows) => {
             if (err) {
                 console.error("Error fetching expenses:", err);
@@ -106,7 +122,7 @@ const getallExpenses = (req, res) => {
     const userId = req.user.userId;
 
     connection.query(
-        "SELECT * FROM expenses WHERE user_id=?",
+        "SELECT e.*, c.name as category_name, c.color_code, c.icon_name FROM expenses e JOIN categories c ON e.category_id = c.id WHERE e.user_id = ? ORDER BY e.expense_date DESC",
         [userId],
         (err, rows) => {
             if (err) {
@@ -124,10 +140,99 @@ const getallExpenses = (req, res) => {
     )
 }
 
+const getStatsSummary = (req, res) => {
+    const { start, end } = req.query;
+    const userId = req.user.userId;
+
+    let query = "SELECT SUM(amount) as total_spent, AVG(amount) as average, COUNT(*) as count FROM expenses WHERE user_id = ?";
+    let params = [userId];
+
+    if (start && end) {
+        query += " AND expense_date BETWEEN ? AND ?";
+        params.push(start, end);
+    }
+
+    connection.query(query, params, (err, result) => {
+        if (err) {
+            console.error("Error fetching stats summary:", err);
+            return res.status(500).json({ message: "Internal server error" });
+        }
+        res.status(200).json(result[0] || { total_spent: 0, average: 0, count: 0 });
+    });
+}
+
+const getStatsByCategory = (req, res) => {
+    const { start, end } = req.query;
+    const userId = req.user.userId;
+
+    let query = "SELECT c.name as category, SUM(e.amount) as total, c.color_code, c.icon_name FROM expenses e JOIN categories c ON e.category_id = c.id WHERE e.user_id = ?";
+    let params = [userId];
+
+    if (start && end) {
+        query += " AND e.expense_date BETWEEN ? AND ?";
+        params.push(start, end);
+    }
+
+    query += " GROUP BY e.category_id";
+
+    connection.query(query, params, (err, rows) => {
+        if (err) {
+            console.error("Error fetching stats by category:", err);
+            return res.status(500).json({ message: "Internal server error" });
+        }
+        res.status(200).json(rows);
+    });
+}
+
+const getStatsTrend = (req, res) => {
+    const { start, end, period = 'day' } = req.query;
+    const userId = req.user.userId;
+
+    let dateFormat = '%Y-%m-%d'; // default for day
+    if (period === 'week') dateFormat = '%Y-%u'; // Year-WeekNumber
+    else if (period === 'month') dateFormat = '%Y-%m';
+    else if (period === 'year') dateFormat = '%Y';
+
+    let query = `SELECT DATE_FORMAT(expense_date, '${dateFormat}') as date, SUM(amount) as total FROM expenses WHERE user_id = ?`;
+    let params = [userId];
+
+    if (start && end) {
+        query += " AND expense_date BETWEEN ? AND ?";
+        params.push(start, end);
+    }
+
+    query += " GROUP BY date ORDER BY date ASC";
+
+    connection.query(query, params, (err, rows) => {
+        if (err) {
+            console.error("Error fetching stats trend:", err);
+            return res.status(500).json({ message: "Internal server error" });
+        }
+        res.status(200).json(rows);
+    });
+}
+
+const getCategories = (req, res) => {
+    connection.query(
+        "SELECT * FROM categories",
+        (err, rows) => {
+            if (err) {
+                console.error("Error fetching categories:", err);
+                return res.status(500).json({ message: "Internal server error" });
+            }
+            res.status(200).json(rows);
+        }
+    )
+}
+
 module.exports = {
     addnewExpense,
     updateExpense,
     deleteExpense,
     getExpenses,
-    getallExpenses
+    getallExpenses,
+    getStatsSummary,
+    getStatsByCategory,
+    getStatsTrend,
+    getCategories
 }

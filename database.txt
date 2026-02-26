@@ -1,0 +1,46 @@
+ CREATE TABLE categories (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    color_code VARCHAR(7),
+    icon_name VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO categories (name, color_code, icon_name) VALUES
+('Food', '#4CAF50', 'Restaurant'),
+('Transport', '#2196F3', 'DirectionsCar'),
+('Rent', '#FF9800', 'Home'),
+('Shopping', '#E91E63', 'ShoppingCart'),
+('Utilities', '#9C27B0', 'Bolt'),
+('Savings', '#607D8B', 'Savings'),
+('Other', '#BDBDBD', 'Category');
+
+
+CREATE TABLE expenses (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    category_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
+    expense_date DATE NOT NULL,
+    description VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+INSERT INTO expenses (user_id, category_id, amount, expense_date, description)
+VALUES
+(3, 1, 1500.00, '2026-02-01', 'Lunch with friends'),
+(3, 2, 4500.00, '2026-02-05', 'Fuel for bike'),
+(3, 3, 12000.00, '2026-02-01', 'February room rent'),
+(3, 4, 2500.00, '2026-02-10', 'Clothes purchase'),
+(3, 1, 800.00, '2026-02-03', 'Dinner'),
+(3, 5, 3000.00, '2026-02-07', 'Electricity bill');
+
+CREATE INDEX idx_user_id ON expenses(user_id);
+CREATE INDEX idx_expense_date ON expenses(expense_date);
+CREATE INDEX idx_user_date ON expenses(user_id, expense_date);
+
+ALTER TABLE expenses 
+ADD COLUMN ref_image VARCHAR(255) NULL;

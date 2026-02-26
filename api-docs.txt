@@ -12,7 +12,9 @@ http://localhost:3000
 - **Method:** `POST`
 - **Headers:** `Content-Type: application/json`
 - **Body Parameters:**
-  za
+  - `username` (string, required)
+  - `email` (string, email format, required)
+  - `password` (string, required)
 - **Success Response:** `201 Created`
 
 ### 2. Login User
@@ -37,7 +39,7 @@ http://localhost:3000
   - `Authorization: Bearer <your_token>`
 - **Body Parameters:**
   - `amount` (number, positive, required)
-  - `category` (string, required)
+  - `categoryId` (number, required)
   - `date` (date, ISO format, required)
   - `description` (string, optional, max: 255)
   - `ref_image` (file, image format, optional)
@@ -52,7 +54,7 @@ http://localhost:3000
 - **Body Parameters:**
   - `expenseId` (number, required)
   - `amount` (number, positive, required)
-  - `category` (string, required)
+  - `categoryId` (number, required)
   - `date` (date, ISO format, required)
   - `description` (string, optional, max: 255)
   - `ref_image` (file, image format, optional)
@@ -68,24 +70,66 @@ http://localhost:3000
   - `expenseId` (number, required)
 - **Success Response:** `200 OK`
 
-### 4. Get Expenses (By Date Range)
+### 4. Get Expenses (With Filtering, Pagination & Search)
 - **URL:** `/process/`
 - **Method:** `GET`
 - **Headers:**
-  - `Content-Type: application/json`
   - `Authorization: Bearer <your_token>`
-- **Body Parameters:** (Note: This GET request expects a body)
-  - `startDate` (date, ISO format, required)
-  - `endDate` (date, ISO format, required, must be >= startDate)
-- **Success Response:** `200 OK` (returns list of expenses)
+- **Query Parameters:**
+  - `start` (date, ISO format, optional)
+  - `end` (date, ISO format, optional)
+  - `limit` (number, default: 20, optional)
+  - `offset` (number, default: 0, optional)
+  - `search` (string, optional)
+- **Success Response:** `200 OK` (returns list of expenses with category details)
 
 ### 5. Get Expenses All
 - **URL:** `/process/all`
 - **Method:** `GET`
 - **Headers:**
-  - `Content-Type: application/json`
   - `Authorization: Bearer <your_token>`
-- **Body Parameters:**
-- **Success Response:** `200 OK` (returns list of expenses)
+- **Success Response:** `200 OK` (returns list of all user expenses)
+
+### 6. Get Categories
+- **URL:** `/process/categories`
+- **Method:** `GET`
+- **Headers:**
+  - `Authorization: Bearer <your_token>`
+- **Success Response:** `200 OK` (returns list of available categories)
+
+---
+
+## Analytics APIs (Requires Authorization)
+
+### 1. Stats Summary
+- **URL:** `/process/stats/summary`
+- **Method:** `GET`
+- **Headers:**
+  - `Authorization: Bearer <your_token>`
+- **Query Parameters:**
+  - `start` (date, ISO format, optional)
+  - `end` (date, ISO format, optional)
+- **Success Response:** `200 OK` (returns { total_spent, average, count })
+
+### 2. Stats By Category
+- **URL:** `/process/stats/by-category`
+- **Method:** `GET`
+- **Headers:**
+  - `Authorization: Bearer <your_token>`
+- **Query Parameters:**
+  - `start` (date, ISO format, optional)
+  - `end` (date, ISO format, optional)
+- **Success Response:** `200 OK` (returns list of totals grouped by category)
+
+### 3. Stats Trend
+- **URL:** `/process/stats/trend`
+- **Method:** `GET`
+- **Headers:**
+  - `Authorization: Bearer <your_token>`
+- **Query Parameters:**
+  - `start` (date, ISO format, optional)
+  - `end` (date, ISO format, optional)
+  - `period` (string: 'day', 'week', 'month', 'year', default: 'day')
+- **Success Response:** `200 OK` (returns aggregated totals based on period)
 
 Database - expense_tracking_app
