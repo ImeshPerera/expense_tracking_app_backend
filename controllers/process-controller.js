@@ -109,7 +109,7 @@ const getExpenses = (req, res) => {
             }
             const expenses = rows.map(expense => {
                 if (expense.ref_image) {
-                    expense.ref_image = `${req.protocol}://${req.get('host')}/${expense.ref_image}`;
+                    expense.ref_image = `${req.protocol}://${req.get('host')}/uploads/expenses/${expense.ref_image}`;
                 }
                 return expense;
             });
@@ -131,7 +131,7 @@ const getallExpenses = (req, res) => {
             }
             const expenses = rows.map(expense => {
                 if (expense.ref_image) {
-                    expense.ref_image = `${req.protocol}://${req.get('host')}/${expense.ref_image}`;
+                    expense.ref_image = `${req.protocol}://${req.get('host')}/uploads/expenses/${expense.ref_image}`;
                 }
                 return expense;
             });
